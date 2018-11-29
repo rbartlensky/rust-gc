@@ -82,6 +82,10 @@ impl<T: Trace> Gc<T> {
             gc
         }
     }
+
+    pub fn same_ptr(&self, other: &Self) -> bool {
+        self.ptr_root == other.ptr_root
+    }
 }
 
 /// Returns the given pointer with its root bit cleared.

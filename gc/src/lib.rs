@@ -83,6 +83,10 @@ impl<T: Trace> Gc<T> {
         }
     }
 
+    pub fn addr(&self) -> usize {
+        unsafe { std::mem::transmute(self.ptr_root.get()) }
+    }
+
     pub fn same_ptr(&self, other: &Self) -> bool {
         self.ptr_root == other.ptr_root
     }

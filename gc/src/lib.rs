@@ -26,7 +26,7 @@ use std::marker::Unsize;
 #[cfg(feature = "nightly")]
 use std::ops::CoerceUnsized;
 
-mod gc;
+pub mod gc;
 mod trace;
 
 // We re-export the Trace method, as well as some useful internal methods for
@@ -64,7 +64,7 @@ impl<T: Trace> Gc<T> {
     /// let five = Gc::new(5);
     /// assert_eq!(*five, 5);
     /// ```
-    pub fn new(value: T) -> Self {
+    pub fn new(value: T) -> Gc<T> {
         assert!(mem::align_of::<GcBox<T>>() > 1);
 
         unsafe {
@@ -90,6 +90,10 @@ impl<T: Trace> Gc<T> {
     pub fn same_ptr(&self, other: &Self) -> bool {
         self.ptr_root == other.ptr_root
     }
+
+    pub fn get_gcbox(self) -> NonNull<GcBox<T>> {
+        self.ptr_root.get()
+    }
 }
 
 /// Returns the given pointer with its root bit cleared.
@@ -113,6 +117,18 @@ impl<T: Trace + ?Sized> Gc<T> {
 
     unsafe fn clear_root(&self) {
         self.ptr_root.set(clear_root_bit(self.ptr_root.get()));
+    }
+
+    pub fn from_gcbox(gc_root: NonNull<GcBox<T>>) -> Gc<T> {
+        unsafe {
+            gc_root.as_ref().root_inner();
+            let gc = Gc {
+                ptr_root: Cell::new(gc_root),
+                marker: PhantomData,
+            };
+            gc.set_root();
+            gc
+        }
     }
 
     #[inline]

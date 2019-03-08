@@ -26,7 +26,7 @@ use std::marker::Unsize;
 #[cfg(feature = "nightly")]
 use std::ops::CoerceUnsized;
 
-mod gc;
+pub mod gc;
 mod trace;
 
 // We re-export the Trace method, as well as some useful internal methods for
